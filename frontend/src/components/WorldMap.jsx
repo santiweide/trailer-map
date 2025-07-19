@@ -39,16 +39,7 @@ export default function WorldMap() {
   const handleClick = (geo) => {
     const name = geo.properties.name.toLowerCase().replace(/\s+/g, '_');
     setSelectedCountry(geo.properties.name);
-    setSelectedImageUrl(null); // 提前清空旧图片
-
-    axios
-      .head(`/assets/${name}.jpg`)
-      .then(() => {
-        setSelectedImageUrl(`/assets/${name}.jpg`);
-      })
-      .catch(() => {
-        setSelectedImageUrl(null);
-      });
+    setSelectedImageUrl(`/pics/${name}.JPG`);
   };
 
   const handleClose = () => {
