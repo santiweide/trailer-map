@@ -6,7 +6,7 @@ app.use('/assets', express.static(path.join(__dirname, 'public/assets')));
 
 app.get('/api/flag/:countryCode', (req, res) => {
     const code = req.params.countryCode.toLowerCase();
-    res.json({ url: `/assets/${code}.png` });
+    res.json({ url: `/assets/${code}.JPG` });
 });
 
 const PORT = 3001;
