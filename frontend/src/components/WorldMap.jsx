@@ -1,34 +1,44 @@
 import { ComposableMap, Geographies, Geography } from 'react-simple-maps';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
 
-const geoUrl =
-  'https://raw.githubusercontent.com/deldersveld/topojson/master/world-countries.json';
+const baseMapUrl = '/world-countries.json'; // 背景底图
 
 export default function WorldMap() {
-  const [hovered, setHovered] = useState(null);
-  const [imgUrl, setImgUrl] = useState(null);
+  const [hoveredCountry, setHoveredCountry] = useState(null);
+  const [hoveredGeoData, setHoveredGeoData] = useState(null);
 
-  const handleMouseEnter = async (geo) => {
-    const code = geo.properties.ISO_A2;
-    setHovered(geo.properties.NAME);
-    try {
-      const res = await axios.get(`/api/flag/${code}`);
-      setImgUrl(res.data.url);
-    } catch {
-      setImgUrl(null);
+  useEffect(() => {
+    if (!hoveredCountry) {
+      setHoveredGeoData(null);
+      return;
     }
+
+    const code = hoveredCountry.toLowerCase();
+    print(code)
+    axios
+      .get(`/geo/${code}.json`)
+      .then((res) => {
+        setHoveredGeoData(res.data);
+      })
+      .catch(() => {
+        setHoveredGeoData(null);
+      });
+  }, [hoveredCountry]);
+
+  const handleMouseEnter = (geo) => {
+    setHoveredCountry(geo.properties.ISO_A2);
   };
 
   const handleMouseLeave = () => {
-    setHovered(null);
-    setImgUrl(null);
+    setHoveredCountry(null);
   };
 
   return (
     <div>
-      <ComposableMap>
-        <Geographies geography={geoUrl}>
+      {/* 背景底图 */}
+      <ComposableMap projectionConfig={{ scale: 140 }}>
+        <Geographies geography={baseMapUrl}>
           {({ geographies }) =>
             geographies.map((geo) => (
               <Geography
@@ -45,21 +55,24 @@ export default function WorldMap() {
             ))
           }
         </Geographies>
-      </ComposableMap>
 
-      {hovered && imgUrl && (
-        <div style={{
-          position: 'absolute',
-          top: 100,
-          left: 50,
-          background: '#fff',
-          padding: '10px',
-          border: '1px solid #ccc'
-        }}>
-          <h4>{hovered}</h4>
-          <img src={imgUrl} alt={hovered} width={150} />
-        </div>
-      )}
+        {/* 高亮国家 */}
+        {hoveredGeoData && (
+          <Geographies geography={hoveredGeoData}>
+            {({ geographies }) =>
+              geographies.map((geo, i) => (
+                <Geography
+                  key={`hover-${i}`}
+                  geography={geo}
+                  style={{
+                    default: { fill: '#FFCC00', stroke: '#000' },
+                  }}
+                />
+              ))
+            }
+          </Geographies>
+        )}
+      </ComposableMap>
     </div>
   );
 }
